@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 	"time"
+
+	_ "modernc.org/sqlite"
 )
 
 func main() {
@@ -69,11 +72,39 @@ func getRealTimeQuotation() Quotation {
 }
 
 func persistQuotation(quotation QuotationResponse) {
-	data, err := json.MarshalIndent(quotation, "", "  ")
+	// connect to database sqlite
+	db, err := sql.Open("sqlite", "./server.db")
 	if err != nil {
-		panic(err)
+		fmt.Println("Erro ao abrir o banco de dados:", err)
+		return
 	}
-	log.Println("Salvando cotação no banco de dados")
-	log.Println(string(data))
-	// TODO: implementar a persistência no banco de dados
+	defer db.Close() // Fechar a conexão quando a função terminar
+
+	// Exemplo: criar uma tabela se ela não existir
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS quotations (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			code TEXT,
+			codein TEXT,
+			name TEXT,
+			bid TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		);
+	`)
+
+	if err != nil {
+		fmt.Println("Erro ao criar tabela:", err)
+		return
+	}
+
+	// timeout máximo para conseguir persistir os dados no banco deverá ser de 10ms.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*10)
+	defer cancel()
+
+	insertQuery := `INSERT INTO quotations (code, codein, name, bid) VALUES (?, ?, ?, ?)`
+	_, err = db.ExecContext(ctx, insertQuery, quotation.UsdBrl.Code, quotation.UsdBrl.Codein, quotation.UsdBrl.Name, quotation.UsdBrl.Bid)
+	if err != nil {
+		fmt.Println("Erro ao inserir cotação:", err)
+		return
+	}
 }
