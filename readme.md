@@ -1,5 +1,5 @@
+# Pós Go Expert - 1º Desafio
 
-Olá dev, tudo bem?
  
 Neste desafio vamos aplicar o que aprendemos sobre webserver http, contextos,
 banco de dados e manipulação de arquivos com Go.
@@ -23,5 +23,4 @@ Os 3 contextos deverão retornar erro nos logs caso o tempo de execução seja i
 O client.go terá que salvar a cotação atual em um arquivo "cotacao.txt" no formato: Dólar: {valor}
  
 O endpoint necessário gerado pelo server.go para este desafio será: /cotacao e a porta a ser utilizada pelo servidor HTTP será a 8080.
- 
-Ao finalizar, envie o link do repositório para correção.
+
